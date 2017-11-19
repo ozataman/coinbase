@@ -126,9 +126,46 @@ data ExchangeMessage
     | Error
         { msgMessage :: Text
         }
+    | Subscriptions [ChannelSubscriptions]
     deriving (Eq, Show, Read, Data, Typeable, Generic)
 
+
+data Channel
+  = Level2Channel
+  | HeartbeatChannel
+  | TickerChannel
+  | FullChannel
+  deriving (Eq,Show,Read,Data,Typeable,Generic)
+
+instance FromJSON Channel where
+  parseJSON (String "level2")    = pure Level2Channel
+  parseJSON (String "heartbeat") = pure HeartbeatChannel
+  parseJSON (String "ticker")    = pure TickerChannel
+  parseJSON (String "full")      = pure FullChannel
+  parseJSON _                    = mzero
+
+
+data ChannelSubscriptions = ChannelSubscriptions
+  { csChannel  :: Channel
+  , csProducts :: [ProductId]
+  } deriving (Eq,Show,Read,Data,Typeable,Generic)
+
+
+instance FromJSON ChannelSubscriptions where
+  parseJSON (Object m) = ChannelSubscriptions
+    <$> m .: "name"
+    <*> (do ls <- m .: "product_ids"
+            forM ls $ \ (String pn) -> pure (ProductId pn))
+  parseJSON _ = mzero
+
+
+-------------------------------------------------------------------------------
 instance NFData ExchangeMessage
+instance NFData Channel
+instance NFData ChannelSubscriptions
+-------------------------------------------------------------------------------
+
+
 
 -----------------------------
 instance FromJSON ExchangeMessage where
@@ -190,7 +227,7 @@ instance FromJSON ExchangeMessage where
                                 <*> m .: "old_size"
                 case (ms :: Maybe Price) of
                     Nothing -> market <|> limit
-                    Just _ -> limit <|> market
+                    Just _  -> limit <|> market
             "received" -> do
                 typ  <- m .:  "order_type"
                 mcid <- m .:? "client_oid"
@@ -223,6 +260,8 @@ instance FromJSON ExchangeMessage where
                                             (Just s , Just f ) -> return $ Right (Just s , f)
                                             )
             "error" -> error (show m)
+            "subscriptions" -> Subscriptions <$>
+              (m .: "channels")
 
     parseJSON _ = mzero
 
@@ -241,6 +280,12 @@ obj .:?? key = case H.lookup key obj of
 instance ToJSON SendExchangeMessage where
     toJSON (Subscribe pids) = object
         [ "type"       .= ("subscribe" :: Text)
+
+        -- TODO: Adding this switches GDAX to newly modified API,
+        -- which messes something up in our setup. We'll need to
+        -- review before adding this.
+        -- , "channels"   .= ["full" :: Text]
+
         , "product_ids" .= pids
         ]
     toJSON (SetHeartbeat b) = object
