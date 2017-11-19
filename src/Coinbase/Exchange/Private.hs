@@ -34,7 +34,7 @@ import           Control.Monad.Trans.Resource
 import           Data.Char
 import           Data.List
 import qualified Data.Text                       as T
-import           Data.UUID
+import           Data.UUID.Types
 
 import           Coinbase.Exchange.Rest
 import           Coinbase.Exchange.Types

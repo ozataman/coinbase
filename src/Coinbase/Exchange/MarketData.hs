@@ -28,7 +28,6 @@ import           Control.Monad.Trans.Resource
 import           Data.List
 import qualified Data.Text                          as T
 import           Data.Time
-import           Data.UUID.Aeson                    ()
 
 #if MIN_VERSION_time(1,5,0)
 import           Data.Time.Format                   (defaultTimeLocale)

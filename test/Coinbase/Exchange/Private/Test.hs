@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
 module Coinbase.Exchange.Private.Test
@@ -7,16 +7,16 @@ module Coinbase.Exchange.Private.Test
     , run_placeOrder
     ) where
 
+import           Control.Concurrent
 import           Control.Monad
 import           Control.Monad.IO.Class
-import           Control.Concurrent
 
 import           Data.IORef
-import           Data.Maybe
 import           Data.List
-import           Data.Time
+import           Data.Maybe
 import           Data.Scientific
-import           Data.UUID
+import           Data.Time
+import           Data.UUID.Types
 
 import           System.Random
 
@@ -28,10 +28,10 @@ import           Coinbase.Exchange.Types
 import           Coinbase.Exchange.Types.Core
 import           Coinbase.Exchange.Types.Private
 
+import qualified Data.ByteString.Char8           as CBS
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Conduit
 import           System.Environment
-import qualified Data.ByteString.Char8             as CBS
 
 deriving instance Eq Order
 
@@ -215,7 +215,7 @@ tests conf = testGroup "Private"
 
                         remittance = SendBitcoin
                             { sendAmount    = 0.1
-                            , bitcoinWallet = undefined 
+                            , bitcoinWallet = undefined
                             }
 
                     trsId <- run_sendToCoinbase conf transfer

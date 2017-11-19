@@ -17,7 +17,7 @@ import           Data.Hashable
 import           Data.Text                    (Text)
 import qualified Data.Text                    as T
 import           Data.Time
-import           Data.UUID
+import           Data.UUID.Types
 import           Data.Word
 import           GHC.Generics
 
@@ -158,7 +158,7 @@ instance FromJSON OrderContigency where
     parseJSON (String "GTT") = return GoodTillTime
     parseJSON (String "IOC") = return ImmediateOrCancel
     parseJSON (String "FOK") = return FillOrKill
-    parseJSON _ = mzero
+    parseJSON _              = mzero
 
 data OrderCancelAfter
     = Min
@@ -170,14 +170,14 @@ instance NFData   OrderCancelAfter
 instance Hashable OrderCancelAfter
 
 instance ToJSON OrderCancelAfter where
-    toJSON Min                  = String "min"
-    toJSON Hour                 = String "hour"
-    toJSON Day                  = String "day"
+    toJSON Min  = String "min"
+    toJSON Hour = String "hour"
+    toJSON Day  = String "day"
 instance FromJSON OrderCancelAfter where
-    parseJSON (String "min")    = return Min
-    parseJSON (String "hour")   = return Hour
-    parseJSON (String "day")    = return Day
-    parseJSON _ = mzero
+    parseJSON (String "min")  = return Min
+    parseJSON (String "hour") = return Hour
+    parseJSON (String "day")  = return Day
+    parseJSON _               = mzero
 
 data SelfTrade
     = DecrementAndCancel
@@ -198,37 +198,37 @@ instance FromJSON SelfTrade where
     parseJSON (String "co") = return CancelOldest
     parseJSON (String "cn") = return CancelNewest
     parseJSON (String "cb") = return CancelBoth
-    parseJSON _ = mzero
+    parseJSON _             = mzero
 
 data NewOrder
     = NewLimitOrder
-        { noProductId :: ProductId
-        , noSide      :: Side
-        , noSelfTrade :: SelfTrade
-        , noClientOid :: Maybe ClientOrderId
+        { noProductId  :: ProductId
+        , noSide       :: Side
+        , noSelfTrade  :: SelfTrade
+        , noClientOid  :: Maybe ClientOrderId
         ---
-        , noPrice     :: Price
-        , noSize      :: Size
+        , noPrice      :: Price
+        , noSize       :: Size
         ,noTimeInForce:: OrderContigency
         ,noCancelAfter:: Maybe OrderCancelAfter
-        , noPostOnly  :: Bool
+        , noPostOnly   :: Bool
         }
     | NewMarketOrder
-        { noProductId :: ProductId
-        , noSide      :: Side
-        , noSelfTrade :: SelfTrade
-        , noClientOid :: Maybe ClientOrderId
+        { noProductId      :: ProductId
+        , noSide           :: Side
+        , noSelfTrade      :: SelfTrade
+        , noClientOid      :: Maybe ClientOrderId
         ---
-        , noSizeAndOrFunds  :: Either Size (Maybe Size, Cost)
+        , noSizeAndOrFunds :: Either Size (Maybe Size, Cost)
         }
     | NewStopOrder
-        { noProductId :: ProductId
-        , noSide      :: Side
-        , noSelfTrade :: SelfTrade
-        , noClientOid :: Maybe ClientOrderId
+        { noProductId      :: ProductId
+        , noSide           :: Side
+        , noSelfTrade      :: SelfTrade
+        , noClientOid      :: Maybe ClientOrderId
         ---
-        , noPrice     :: Price
-        , noSizeAndOrFunds  :: Either Size (Maybe Size, Cost)
+        , noPrice          :: Price
+        , noSizeAndOrFunds :: Either Size (Maybe Size, Cost)
         }
     deriving (Show, Data, Typeable, Generic)
 
@@ -300,54 +300,54 @@ instance FromJSON OrderConfirmation where
 
 data Order
     = LimitOrder
-        { orderId         :: OrderId
-        , orderProductId  :: ProductId
-        , orderStatus     :: OrderStatus
-        , orderSelfTrade  :: SelfTrade
-        , orderSettled    :: Bool
-        , orderSide       :: Side
-        , orderCreatedAt  :: UTCTime
-        , orderFilledSize :: Maybe Size
-        , orderFilledFees :: Maybe Price
-        , orderDoneAt     :: Maybe UTCTime
-        , orderDoneReason :: Maybe Reason
+        { orderId          :: OrderId
+        , orderProductId   :: ProductId
+        , orderStatus      :: OrderStatus
+        , orderSelfTrade   :: SelfTrade
+        , orderSettled     :: Bool
+        , orderSide        :: Side
+        , orderCreatedAt   :: UTCTime
+        , orderFilledSize  :: Maybe Size
+        , orderFilledFees  :: Maybe Price
+        , orderDoneAt      :: Maybe UTCTime
+        , orderDoneReason  :: Maybe Reason
 
-        , orderPrice      :: Price
-        , orderSize       :: Size
+        , orderPrice       :: Price
+        , orderSize        :: Size
         , orderTimeInForce:: OrderContigency
         , orderCancelAfter:: Maybe OrderCancelAfter
-        , orderPostOnly   :: Bool
+        , orderPostOnly    :: Bool
         }
     | MarketOrder
-        { orderId         :: OrderId
-        , orderProductId  :: ProductId
-        , orderStatus     :: OrderStatus
-        , orderSelfTrade  :: SelfTrade
-        , orderSettled    :: Bool
-        , orderSide       :: Side
-        , orderCreatedAt  :: UTCTime
-        , orderFilledSize :: Maybe Size
-        , orderFilledFees :: Maybe Price
-        , orderDoneAt     :: Maybe UTCTime
-        , orderDoneReason :: Maybe Reason
+        { orderId             :: OrderId
+        , orderProductId      :: ProductId
+        , orderStatus         :: OrderStatus
+        , orderSelfTrade      :: SelfTrade
+        , orderSettled        :: Bool
+        , orderSide           :: Side
+        , orderCreatedAt      :: UTCTime
+        , orderFilledSize     :: Maybe Size
+        , orderFilledFees     :: Maybe Price
+        , orderDoneAt         :: Maybe UTCTime
+        , orderDoneReason     :: Maybe Reason
 
-        , orderSizeAndOrFunds  :: Either Size (Maybe Size, Cost)
+        , orderSizeAndOrFunds :: Either Size (Maybe Size, Cost)
         }
     | StopOrder
-        { orderId         :: OrderId
-        , orderProductId  :: ProductId
-        , orderStatus     :: OrderStatus
-        , orderSelfTrade  :: SelfTrade
-        , orderSettled    :: Bool
-        , orderSide       :: Side
-        , orderCreatedAt  :: UTCTime
-        , orderFilledSize :: Maybe Size
-        , orderFilledFees :: Maybe Price
-        , orderDoneAt     :: Maybe UTCTime
-        , orderDoneReason :: Maybe Reason
+        { orderId             :: OrderId
+        , orderProductId      :: ProductId
+        , orderStatus         :: OrderStatus
+        , orderSelfTrade      :: SelfTrade
+        , orderSettled        :: Bool
+        , orderSide           :: Side
+        , orderCreatedAt      :: UTCTime
+        , orderFilledSize     :: Maybe Size
+        , orderFilledFees     :: Maybe Price
+        , orderDoneAt         :: Maybe UTCTime
+        , orderDoneReason     :: Maybe Reason
 
-        , orderPrice      :: Price
-        , orderSizeAndOrFunds  :: Either Size (Maybe Size, Cost)
+        , orderPrice          :: Price
+        , orderSizeAndOrFunds :: Either Size (Maybe Size, Cost)
         }
     deriving (Show, Data, Typeable, Generic)
 
@@ -664,12 +664,12 @@ instance NFData   ReportType
 instance Hashable ReportType
 
 instance ToJSON ReportType where
-    toJSON FillsReport                = String "fills"
-    toJSON AccountReport              = String "account"
+    toJSON FillsReport   = String "fills"
+    toJSON AccountReport = String "account"
 instance FromJSON ReportType where
     parseJSON (String "fills")   = return FillsReport
     parseJSON (String "account") = return AccountReport
-    parseJSON _ = mzero
+    parseJSON _                  = mzero
 
 data ReportFormat
     = PDF
@@ -680,22 +680,22 @@ instance NFData   ReportFormat
 instance Hashable ReportFormat
 
 instance ToJSON ReportFormat where
-    toJSON PDF                  = String "pdf"
-    toJSON CSV                  = String "csv"
+    toJSON PDF = String "pdf"
+    toJSON CSV = String "csv"
 instance FromJSON ReportFormat where
-    parseJSON (String "pdf")    = return PDF
-    parseJSON (String "csv")    = return CSV
-    parseJSON _ = mzero
+    parseJSON (String "pdf") = return PDF
+    parseJSON (String "csv") = return CSV
+    parseJSON _              = mzero
 
 data ReportRequest -- analgous to Transfer or NewOrder
     = ReportRequest
-        { rrqType            :: ReportType
-        , rrqStartDate       :: UTCTime
-        , rrqEndDate         :: UTCTime
-        , rrqProductId       :: ProductId
-        , rrqAccountId       :: AccountId
-        , rrqFormat          :: ReportFormat
-        , rrqEmail           :: Maybe String
+        { rrqType      :: ReportType
+        , rrqStartDate :: UTCTime
+        , rrqEndDate   :: UTCTime
+        , rrqProductId :: ProductId
+        , rrqAccountId :: AccountId
+        , rrqFormat    :: ReportFormat
+        , rrqEmail     :: Maybe String
         }
     deriving (Show, Data, Typeable, Generic)
 
@@ -707,8 +707,8 @@ instance FromJSON ReportRequest where
 
 data ReportParams
     = ReportParams
-        { reportStartDate       :: UTCTime
-        , reportEndDate         :: UTCTime
+        { reportStartDate :: UTCTime
+        , reportEndDate   :: UTCTime
         }
     deriving (Show, Data, Typeable, Generic)
 
@@ -734,25 +734,25 @@ instance NFData   ReportStatus
 instance Hashable ReportStatus
 
 instance ToJSON ReportStatus where
-    toJSON ReportPending        = String "pending"
-    toJSON ReportCreating       = String "creating"
-    toJSON ReportReady          = String "ready"
+    toJSON ReportPending  = String "pending"
+    toJSON ReportCreating = String "creating"
+    toJSON ReportReady    = String "ready"
 instance FromJSON ReportStatus where
-    parseJSON (String "pending")    = return ReportPending
-    parseJSON (String "creating")   = return ReportCreating
-    parseJSON (String "ready")      = return ReportReady
-    parseJSON _ = mzero
+    parseJSON (String "pending")  = return ReportPending
+    parseJSON (String "creating") = return ReportCreating
+    parseJSON (String "ready")    = return ReportReady
+    parseJSON _                   = mzero
 
 data ReportInfo
     = ReportInfo
-        { reportId          :: ReportId
-        , reportType        :: ReportType
-        , reportStatus      :: ReportStatus
-        , reportCreated     :: Maybe UTCTime
-        , reportCompleted   :: Maybe UTCTime
-        , reportExpires     :: Maybe UTCTime
-        , reportUrl         :: Maybe String
-        , reportParams      :: Maybe ReportParams
+        { reportId        :: ReportId
+        , reportType      :: ReportType
+        , reportStatus    :: ReportStatus
+        , reportCreated   :: Maybe UTCTime
+        , reportCompleted :: Maybe UTCTime
+        , reportExpires   :: Maybe UTCTime
+        , reportUrl       :: Maybe String
+        , reportParams    :: Maybe ReportParams
         }
     deriving (Show, Data, Typeable, Generic)
 

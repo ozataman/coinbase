@@ -35,7 +35,7 @@ library
                     ,   conduit
                     ,   conduit-extra
                     ,   http-conduit
-                    ,   aeson
+                    ,   aeson >= 1.1
                     ,   aeson-casing
                     ,   http-types
                     ,   text
@@ -43,8 +43,7 @@ library
                     ,   base64-bytestring
                     ,   time
                     ,   scientific
-                    ,   uuid
-                    ,   uuid-aeson
+                    ,   uuid-types
                     ,   vector
                     ,   hashable
                     ,   deepseq
@@ -67,7 +66,7 @@ executable sandbox
                     ,   http-client
                     ,   http-client-tls
 
-                    ,   uuid
+                    ,   uuid-types
                     ,   text
                     ,   aeson
                     ,   bytestring
@@ -103,7 +102,7 @@ test-suite test-coinbase
                     ,   tasty-quickcheck
                     ,   tasty-hunit
 
-                    ,   uuid
+                    ,   uuid-types
                     ,   bytestring
                     ,   time
                     ,   old-locale

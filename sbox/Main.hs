@@ -9,7 +9,7 @@ import           Data.Aeson
 import qualified Data.ByteString.Char8           as CBS
 import           Data.Maybe
 import           Data.Time
-import           Data.UUID
+import           Data.UUID.Types
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import qualified Network.WebSockets              as WS

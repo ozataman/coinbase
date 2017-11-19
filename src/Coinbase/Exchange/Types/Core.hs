@@ -19,8 +19,7 @@ import           Data.String
 import           Data.Text           (Text)
 import qualified Data.Text           as T
 import           Data.Time
-import           Data.UUID
-import           Data.UUID.Aeson     ()
+import           Data.UUID.Types
 import           Data.Word
 import           GHC.Generics
 import           Text.Read           (readMaybe)
@@ -80,7 +79,7 @@ instance ToJSON TradeId where
 instance FromJSON TradeId where
     parseJSON (String t) = pure $ TradeId $ read $ T.unpack t
     parseJSON (Number n) = pure $ TradeId $ floor n
-    parseJSON _ = mzero
+    parseJSON _          = mzero
 
 --
 
