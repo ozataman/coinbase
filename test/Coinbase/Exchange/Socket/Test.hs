@@ -2,24 +2,24 @@
 
 module Coinbase.Exchange.Socket.Test (tests) where
 
-import           Data.Aeson
-import           Control.Monad
 import           Control.Concurrent
 import           Control.Concurrent.Async
+import           Control.Monad
+import           Data.Aeson
 
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
-import qualified Network.WebSockets              as WS
+import qualified Network.WebSockets             as WS
 
-import           Coinbase.Exchange.Types
-import           Coinbase.Exchange.Types.Core
 import           Coinbase.Exchange.Private
 import           Coinbase.Exchange.Socket
+import           Coinbase.Exchange.Types
+import           Coinbase.Exchange.Types.Core
 
-import qualified Coinbase.Exchange.Private.Test  as P
+import qualified Coinbase.Exchange.Private.Test as P
 
-import Debug.Trace
+import           Debug.Trace
 
 -------------------------------------
 -- NOTE: [Connectivity Precondition]
@@ -52,13 +52,13 @@ tests conf = testGroup "Socket"
 
 
 receiveSocket :: ExchangeConf -> IO ()
-receiveSocket conf = subscribe (apiType conf) (ProductId "BTC-USD") $ \conn -> do
+receiveSocket conf = subscribe (apiType conf) [ProductId "BTC-USD"] $ \conn -> do
     sequence_ $ replicate 20 (receiveAndDecode conn)
 
 -- Success: no parse errors   found while running
 -- Failure: a parse error is  found while running
 parseSocket :: ExchangeConf -> IO a -> IO ()
-parseSocket conf challenge = subscribe (apiType conf) (ProductId "BTC-USD") $ \conn -> do
+parseSocket conf challenge = subscribe (apiType conf) [ProductId "BTC-USD"] $ \conn -> do
     waitCancelThreads challenge (forever $ receiveAndDecode conn)
     return ()
 
@@ -66,7 +66,7 @@ parseSocket conf challenge = subscribe (apiType conf) (ProductId "BTC-USD") $ \c
 -- FIX ME! there's no guarantee we are hitting all order types.
 -- a more thorough test would be better.
 reencodeSocket :: ExchangeConf -> IO ()
-reencodeSocket conf = subscribe (apiType conf) (ProductId "BTC-USD") $ \conn -> do
+reencodeSocket conf = subscribe (apiType conf) [ProductId "BTC-USD"] $ \conn -> do
     sequence_ $ replicate 1000 (decodeEncode conn) -- currently takes under a minute on 'Live' feed
 
 decodeEncode :: WS.Connection -> IO ()
