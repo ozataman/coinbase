@@ -78,6 +78,8 @@ data Tick
         { tickTradeId :: Word64
         , tickPrice   :: Price
         , tickSize    :: Size
+        , tickBid     :: Price
+        , tickAsk     :: Price
         , tickTime    :: Maybe UTCTime
         }
     deriving (Show, Data, Typeable, Generic)
