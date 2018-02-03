@@ -8,41 +8,37 @@
 {-# LANGUAGE UndecidableInstances       #-}
 
 module Coinbase.Exchange.Types
-    ( ApiType (..)
-    , Endpoint
-    , Path
-
-    , website
-    , sandboxRest
-    , sandboxSocket
-    , liveRest
-    , liveSocket
-    , liveRealCoinbaseRest
-    , sandboxRealCoinbaseRest
-
-    , Key
-    , Secret
-    , Passphrase
-
-    , Token
-    , key
-    , secret
-    , passphrase
-    , mkToken
-
-    , ExchangeConf (..)
-    , ExchangeFailure (..)
-
-    , Exchange
-    , ExchangeT
-    , ExceptT
-    , runExchange
-    , runExchangeT
-    , execExchange
-    , execExchangeT
-
-    , getManager
-    ) where
+  ( ApiType(..)
+  , Endpoint
+  , Path
+  , Pagination(..)
+  , nullPagination
+  , website
+  , sandboxRest
+  , sandboxSocket
+  , liveRest
+  , liveSocket
+  , liveRealCoinbaseRest
+  , sandboxRealCoinbaseRest
+  , Key
+  , Secret
+  , Passphrase
+  , Token
+  , key
+  , secret
+  , passphrase
+  , mkToken
+  , ExchangeConf(..)
+  , ExchangeFailure(..)
+  , Exchange
+  , ExchangeT
+  , ExceptT
+  , runExchange
+  , runExchangeT
+  , execExchange
+  , execExchangeT
+  , getManager
+  ) where
 
 import           Control.Applicative
 import           Control.Monad.Base
@@ -58,14 +54,14 @@ import           GHC.Generics
 import           Network.HTTP.Conduit
 
 -- API URLs
-
 data ApiType
-    = Sandbox
-    | Live
-    deriving (Show)
+  = Sandbox
+  | Live
+  deriving (Show)
 
 type Endpoint = String
-type Path     = String
+
+type Path = String
 
 website :: Endpoint
 website = "https://public.sandbox.gdax.com"
@@ -91,68 +87,93 @@ sandboxRealCoinbaseRest :: Endpoint
 sandboxRealCoinbaseRest = "https://api.sandbox.coinbase.com"
 
 -- Monad Stack
+type Key = ByteString
 
-type Key        = ByteString
-type Secret     = ByteString
+type Secret = ByteString
+
 type Passphrase = ByteString
 
-data Token
-    = Token
-        { key        :: ByteString
-        , secret     :: ByteString
-        , passphrase :: ByteString
-        }
+data Pagination = Pagination
+  { before :: Maybe String
+  , after  :: Maybe String
+  }
+
+nullPagination :: Pagination
+nullPagination = Pagination {before = Nothing, after = Nothing}
+
+data Token = Token
+  { key        :: ByteString
+  , secret     :: ByteString
+  , passphrase :: ByteString
+  }
 
 mkToken :: Key -> Secret -> Passphrase -> Either String Token
-mkToken k s p = case Base64.decode s of
-                    Right s' -> Right $ Token k s' p
-                    Left  e  -> Left e
+mkToken k s p =
+  case Base64.decode s of
+    Right s' -> Right $ Token k s' p
+    Left e   -> Left e
 
-data ExchangeConf
-    = ExchangeConf
-        { manager   :: Manager
-        , authToken :: Maybe Token
-        , apiType   :: ApiType
-        }
+data ExchangeConf = ExchangeConf
+  { manager   :: Manager
+  , authToken :: Maybe Token
+  , apiType   :: ApiType
+  }
 
-data ExchangeFailure = ParseFailure Text
-                     | ApiFailure Text
-                     | AuthenticationRequiredFailure Text
-                     | AuthenticationRequiresByteStrings
-                     deriving (Show, Data, Typeable, Generic)
+data ExchangeFailure
+  = ParseFailure Text
+  | ApiFailure Text
+  | AuthenticationRequiredFailure Text
+  | AuthenticationRequiresByteStrings
+  deriving (Show, Data, Typeable, Generic)
 
 instance Exception ExchangeFailure
 
 type Exchange a = ExchangeT IO a
 
-newtype ExchangeT m a = ExchangeT { unExchangeT :: ResourceT (ReaderT ExchangeConf (ExceptT ExchangeFailure m)) a }
-    deriving ( Functor, Applicative, Monad, MonadIO, MonadThrow
+newtype ExchangeT m a = ExchangeT
+  { unExchangeT :: ResourceT (ReaderT ExchangeConf (ExceptT ExchangeFailure m)) a
+  } deriving ( Functor
+             , Applicative
+             , Monad
+             , MonadIO
+             , MonadThrow
              , MonadError ExchangeFailure
              , MonadReader ExchangeConf
              )
 
 deriving instance (MonadBase IO m) => MonadBase IO (ExchangeT m)
-deriving instance (Monad m, MonadThrow m, MonadIO m, MonadBase IO m) => MonadResource (ExchangeT m)
+
+deriving instance
+         (Monad m, MonadThrow m, MonadIO m, MonadBase IO m) =>
+         MonadResource (ExchangeT m)
 
 runExchange :: ExchangeConf -> Exchange a -> IO (Either ExchangeFailure a)
 runExchange = runExchangeT
 
-runExchangeT :: MonadBaseControl IO m => ExchangeConf -> ExchangeT m a -> m (Either ExchangeFailure a)
-runExchangeT conf = runExceptT . flip runReaderT conf . runResourceT . unExchangeT
+runExchangeT ::
+     MonadBaseControl IO m
+  => ExchangeConf
+  -> ExchangeT m a
+  -> m (Either ExchangeFailure a)
+runExchangeT conf =
+  runExceptT . flip runReaderT conf . runResourceT . unExchangeT
 
 execExchange :: ExchangeConf -> Exchange a -> IO a
 execExchange = execExchangeT
 
-execExchangeT :: (MonadThrow m, MonadBaseControl IO m) => ExchangeConf -> ExchangeT m a -> m a
+execExchangeT ::
+     (MonadThrow m, MonadBaseControl IO m)
+  => ExchangeConf
+  -> ExchangeT m a
+  -> m a
 execExchangeT conf act = do
-    v <- runExceptT . flip runReaderT conf . runResourceT . unExchangeT $ act
-    case v of
-        Left er -> throwM er
-        Right v -> return v
+  v <- runExceptT . flip runReaderT conf . runResourceT . unExchangeT $ act
+  case v of
+    Left er -> throwM er
+    Right v -> return v
 
 -- Utils
-
 getManager :: (MonadReader ExchangeConf m) => m Manager
 getManager = do
-        conf <- ask
-        return $ manager conf
+  conf <- ask
+  return $ manager conf

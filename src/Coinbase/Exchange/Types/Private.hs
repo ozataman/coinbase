@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 
+
 module Coinbase.Exchange.Types.Private where
 
 import           Control.Applicative
@@ -22,7 +23,7 @@ import           Data.Word
 import           GHC.Generics
 
 import           Coinbase.Exchange.Types
-import           Coinbase.Exchange.Types.Core
+import           Coinbase.Exchange.Types.Core hiding (Entry)
 
 -- Accounts
 
@@ -568,6 +569,20 @@ instance NFData TransferToCoinbase
 instance ToJSON TransferToCoinbase where
     toJSON = genericToJSON coinbaseAesonOptions
 
+data CryptoWithdrawal
+    = Withdrawal
+        { wdAmount        :: Size
+        , wdCurrency      :: CurrencyId
+        , wdCryptoAddress :: CryptoWallet
+        }
+    deriving (Show, Data, Typeable, Generic)
+
+instance NFData CryptoWithdrawal
+instance ToJSON CryptoWithdrawal where
+    toJSON = genericToJSON coinbaseAesonOptions
+instance FromJSON CryptoWithdrawal where
+    parseJSON = genericParseJSON coinbaseAesonOptions
+
 ---------------------------
 data TransferToCoinbaseResponse
     = TransferResponse
@@ -581,9 +596,34 @@ instance FromJSON TransferToCoinbaseResponse where
         <$> m .: "id"
     parseJSON _ = mzero
 
----------------------------
+data CryptoWithdrawalResp
+    = WithdrawalResp
+        { wdrId       :: TransferId
+        , wdrAmount   :: Size
+        , wdrCurrency :: CurrencyId
+        } deriving (Eq, Show, Generic, Typeable)
 
-data BitcoinWallet = Wallet { address :: String } deriving (Show, Data, Typeable, Generic)
+instance NFData CryptoWithdrawalResp
+instance ToJSON CryptoWithdrawalResp where
+    toJSON = genericToJSON coinbaseAesonOptions
+instance FromJSON CryptoWithdrawalResp where
+    parseJSON = genericParseJSON coinbaseAesonOptions
+
+---------------------------
+data CryptoWallet
+    = BTCWallet BitcoinWallet deriving (Show, Data, Typeable, Generic)
+--  | To Do: add other...
+--  | ... possibilities here later
+
+instance NFData CryptoWallet
+instance ToJSON CryptoWallet where
+    toJSON = genericToJSON coinbaseAesonOptions
+instance FromJSON CryptoWallet where
+    parseJSON = genericParseJSON coinbaseAesonOptions
+
+
+newtype BitcoinWallet = FromBTCAddress { btcAddress :: String }
+      deriving (Show, Data, Typeable, Generic, ToJSON, FromJSON)
 instance NFData BitcoinWallet
 
 data BTCTransferReq
@@ -598,7 +638,7 @@ instance ToJSON BTCTransferReq where
     toJSON SendBitcoin {..} = object
         [ "type"     .= ("send" :: Text)
         , "currency" .= ("BTC"  :: Text)
-        , "to"       .= address bitcoinWallet
+        , "to"       .= btcAddress bitcoinWallet
         , "amount"   .= sendAmount
         ]
 

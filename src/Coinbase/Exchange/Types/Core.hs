@@ -19,7 +19,7 @@ import           Data.String
 import           Data.Text           (Text)
 import qualified Data.Text           as T
 import           Data.Time
-import           Data.UUID.Types
+import           Data.UUID
 import           Data.Word
 import           GHC.Generics
 import           Text.Read           (readMaybe)
@@ -29,22 +29,40 @@ newtype ProductId = ProductId { unProductId :: Text }
     deriving (Eq, Ord, Show, Read, Data, Typeable, Generic, IsString, NFData, Hashable, FromJSON, ToJSON)
 
 newtype Price = Price { unPrice :: CoinScientific }
-    deriving (Eq, Ord, Num, Fractional, Real, RealFrac, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
+    deriving (Eq, Ord, Num, Fractional, Real, RealFrac, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON)
+instance ToJSON Price where
+    toJSON (Price (CoinScientific v)) = String . T.pack . formatScientific Fixed Nothing $ v
+instance Show Price where
+    show (Price (CoinScientific v)) = formatScientific Fixed Nothing v
 
 newtype Size = Size { unSize :: CoinScientific }
-    deriving (Eq, Ord, Num, Fractional, Real, RealFrac, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
+    deriving (Eq, Ord, Num, Fractional, Real, RealFrac, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON)
+instance ToJSON Size where
+    toJSON (Size (CoinScientific v)) = String . T.pack . formatScientific Fixed Nothing $ v
+instance Show Size where
+    show (Size (CoinScientific v)) = formatScientific Fixed Nothing v
 
 newtype Cost = Cost { unCost :: CoinScientific }
-    deriving (Eq, Ord, Num, Fractional, Real, RealFrac, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
+    deriving (Eq, Ord, Num, Fractional, Real, RealFrac, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON)
+instance ToJSON Cost where
+    toJSON (Cost (CoinScientific v)) = String . T.pack . formatScientific Fixed Nothing $ v
+instance Show Cost where
+    show (Cost (CoinScientific v)) = formatScientific Fixed Nothing v
 
 newtype OrderId = OrderId { unOrderId :: UUID }
+    deriving (Eq, Ord, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
+
+newtype UserId = UserId { unUserId :: Text }
+    deriving (Eq, Ord, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
+
+newtype ProfileId = ProfileId { unProfileId :: UUID }
     deriving (Eq, Ord, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
 
 newtype Aggregate = Aggregate { unAggregate :: Int64 }
     deriving (Eq, Ord, Show, Read, Num, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
 
 newtype Sequence = Sequence { unSequence :: Word64 }
-    deriving (Eq, Ord, Num, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
+    deriving (Eq, Ord, Num, Enum, Show, Read, Data, Typeable, Generic, NFData, Hashable, FromJSON, ToJSON)
 
 --
 
@@ -122,11 +140,24 @@ instance FromJSON Reason where
 
 ----
 
+data StopType = Entry
+    deriving (Eq, Show, Read, Data, Typeable, Generic)
+
+instance NFData StopType
+instance Hashable StopType
+instance ToJSON StopType where
+    toJSON = genericToJSON defaultOptions { constructorTagModifier = map toLower }
+instance FromJSON StopType where
+    parseJSON = genericParseJSON defaultOptions { constructorTagModifier = map toLower }
+
+----
+
 newtype CoinScientific = CoinScientific { unCoinScientific :: Scientific }
     deriving (Eq, Ord, Num, Fractional, Real, RealFrac, Show, Read, Data, Typeable, NFData, Hashable)
 
+-- Shows 8 decimal places (needs to be adapted for prices and costs in USD)
 instance ToJSON CoinScientific where
-    toJSON (CoinScientific v) = String . T.pack . show $ v
+    toJSON (CoinScientific v) = String . T.pack . formatScientific Fixed (Just 8) $ v
 instance FromJSON CoinScientific where
     parseJSON = withText "CoinScientific" $ \t ->
         case readMaybe (T.unpack t) of

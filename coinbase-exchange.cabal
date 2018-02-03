@@ -1,5 +1,5 @@
 name:                coinbase-exchange
-version:             0.3.0.0
+version:             0.4.0.0
 synopsis:            Connector library for the coinbase exchange.
 description:         Access library for the coinbase exchange. Allows the use
                      of both the public market data API as well as the private
@@ -19,16 +19,14 @@ library
 
     exposed-modules:    Coinbase.Exchange.MarketData
                     ,   Coinbase.Exchange.Private
+                    ,   Coinbase.Exchange.Rest
                     ,   Coinbase.Exchange.Socket
                     ,   Coinbase.Exchange.Types.Core
                     ,   Coinbase.Exchange.Types.MarketData
                     ,   Coinbase.Exchange.Types.Private
                     ,   Coinbase.Exchange.Types.Socket
                     ,   Coinbase.Exchange.Types
-
-    other-modules:      Coinbase.Exchange.Rest
-
-    build-depends:      base
+    build-depends:      base    >= 4 && < 5
                     ,   mtl
                     ,   resourcet
                     ,   transformers-base
@@ -43,7 +41,7 @@ library
                     ,   base64-bytestring
                     ,   time
                     ,   scientific
-                    ,   uuid-types
+                    ,   uuid
                     ,   vector
                     ,   hashable
                     ,   deepseq
@@ -62,7 +60,7 @@ executable sandbox
     hs-source-dirs:     sbox
     default-language:   Haskell2010
 
-    build-depends:      base
+    build-depends:      base    >= 4 && < 5
                     ,   http-client
                     ,   http-client-tls
 
@@ -96,7 +94,7 @@ test-suite test-coinbase
                         Coinbase.Exchange.Private.Test
                         Coinbase.Exchange.Socket.Test
 
-    build-depends:      base
+    build-depends:      base    >= 4 && < 5
                     ,   tasty
                     ,   tasty-th
                     ,   tasty-quickcheck
