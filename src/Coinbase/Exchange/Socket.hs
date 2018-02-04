@@ -22,7 +22,6 @@ import           Network.Socket
 import qualified Network.WebSockets             as WS
 import           Text.Printf
 import           Wuss
-
 -------------------------------------------------------------------------------
 import           Coinbase.Exchange.Types
 import           Coinbase.Exchange.Types.Core
@@ -50,10 +49,10 @@ mkAuth conf = do
         Nothing -> throw $ AuthenticationRequiredFailure $ T.pack p
 
 -------------------------------------------------------------------------------
-subscribe :: ExchangeConf -> ApiType -> [ChannelSubscription] -> WS.ClientApp a -> IO a
+subscribe :: Maybe ExchangeConf -> ApiType -> [ChannelSubscription] -> WS.ClientApp a -> IO a
 subscribe conf atype chans app =
     withSocketsDo $ do
-        auth <- mkAuth conf
+        auth <- maybe (pure Nothing) (fmap Just . mkAuth) conf
         runSecureClient location 443 "/" $ \conn -> do
             WS.sendTextData conn $ encode (Subscribe auth chans)
             app conn

@@ -38,7 +38,7 @@ instance ToJSON Auth where
 -------------------------------------------------------------------------------
 -- | Messages we can send to the exchange
 data SendExchangeMessage
-  = Subscribe Auth [ChannelSubscription]
+  = Subscribe (Maybe Auth) [ChannelSubscription]
   | SetHeartbeat Bool
   deriving (Eq, Show, Read, Data, Typeable, Generic)
 
@@ -373,15 +373,17 @@ obj .:?? key =
 
 -------------------------------------------------------------------------------
 instance ToJSON SendExchangeMessage where
-  toJSON (Subscribe auth chans) =
-    object
-      [ "type" .= ("subscribe" :: Text)
-      , "channels" .= chans
-      , "signature" .= authSignature auth
-      , "key" .= authKey auth
-      , "passphrase" .= authPassphrase auth
-      , "timestamp" .= authTimestamp auth
-      ]
+  toJSON (Subscribe auth0 chans) =
+    let authBits auth =
+          [ "signature" .= authSignature auth
+          , "key" .= authKey auth
+          , "passphrase" .= authPassphrase auth
+          , "timestamp" .= authTimestamp auth
+          ]
+    in object $
+       [ "type" .= ("subscribe" :: Text)
+       , "channels" .= chans
+       ] ++ maybe [] authBits auth0
   toJSON (SetHeartbeat b) = object ["type" .= ("heartbeat" :: Text), "on" .= b]
 
 -------------------------------------------------------------------------------
