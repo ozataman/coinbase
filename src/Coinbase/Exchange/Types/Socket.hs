@@ -47,104 +47,132 @@ instance NFData SendExchangeMessage
 -------------------------------------------------------------------------------
 -- | Messages they send back to us
 data ExchangeMessage
-  = Heartbeat { msgTime        :: UTCTime
-              , msgProductId   :: ProductId
-              , msgSequence    :: Sequence
-              , msgLastTradeId :: TradeId }
-  | ReceivedLimit { msgTime      :: UTCTime
-                  , msgProductId :: ProductId
-                  , msgSequence  :: Sequence
-                  , msgOrderId   :: OrderId
-                  , msgSide      :: Side
-                  , msgClientOid :: Maybe ClientOrderId
-        --
-                  , msgPrice     :: Price
-                  , msgSize      :: Size
-                  , msgUserId    :: Maybe UserId
-                  , msgProfileId :: Maybe ProfileId }
-  | ReceivedMarket { msgTime         :: UTCTime
-                   , msgProductId    :: ProductId
-                   , msgSequence     :: Sequence
-                   , msgOrderId      :: OrderId
-                   , msgSide         :: Side
-                   , msgClientOid    :: Maybe ClientOrderId
-        -- market orders have no price and are bounded by either size, funds or both
-                   , msgMarketBounds :: (Either Size (Maybe Size, Cost))
-                   , msgUserId       :: Maybe UserId
-                   , msgProfileId    :: Maybe ProfileId }
-  | Open { msgTime          :: UTCTime
-         , msgProductId     :: ProductId
-         , msgSequence      :: Sequence
-         , msgOrderId       :: OrderId
-         , msgSide          :: Side
-         , msgRemainingSize :: Size
-         , msgPrice         :: Price
-         , msgUserId        :: Maybe UserId
-         , msgProfileId     :: Maybe ProfileId }
-  | Match { msgTime           :: UTCTime
-          , msgProductId      :: ProductId
-          , msgSequence       :: Sequence
-          , msgSide           :: Side
-          , msgTradeId        :: TradeId
-          , msgMakerOrderId   :: OrderId
-          , msgTakerOrderId   :: OrderId
-          , msgSize           :: Size
-          , msgPrice          :: Price
-          , msgUserId         :: Maybe UserId
-          , msgProfileId      :: Maybe ProfileId
-          , msgTakerUserId    :: Maybe UserId
-          , msgTakerProfileId :: Maybe ProfileId }
-  | Done { msgTime         :: UTCTime
-         , msgProductId    :: ProductId
-         , msgSequence     :: Sequence
-         , msgOrderId      :: OrderId
-         , msgSide         :: Side
-         , msgReason       :: Reason
-        -- It is possible for these next two fields to be Nothing separately
-        -- Filled market orders limited by funds will not have a price but may have remaining_size
-        -- Filled limit orders may have a price but not a remaining_size (assumed zero)
-        -- CURRENTLY ** `remaining_size` reported in Done messages is sometimes incorrect **
-        -- This appears to be bug at GDAX. I've told them about it.
-         , msgMaybePrice   :: Maybe Price
-         , msgMaybeRemSize :: Maybe Size
-         , msgUserId       :: Maybe UserId
-         , msgProfileId    :: Maybe ProfileId }
-  | ChangeLimit { msgTime      :: UTCTime
-                , msgProductId :: ProductId
-                , msgSequence  :: Sequence
-                , msgOrderId   :: OrderId
-                , msgSide      :: Side
-                , msgPrice     :: Price
-                , msgNewSize   :: Size
-                , msgOldSize   :: Size
-                , msgUserId    :: Maybe UserId
-                , msgProfileId :: Maybe ProfileId }
-  | ChangeMarket { msgTime      :: UTCTime
-                 , msgProductId :: ProductId
-                 , msgSequence  :: Sequence
-                 , msgOrderId   :: OrderId
-                 , msgSide      :: Side
-                 , msgNewFunds  :: Cost
-                 , msgOldFunds  :: Cost
-                 , msgUserId    :: Maybe UserId
-                 , msgProfileId :: Maybe ProfileId }
-  | Activate { msgTime            :: UTCTime
-             , msgProductId       :: ProductId
-             , msgOrderId         :: OrderId
-             , msgSide            :: Side
-             , msgStopType        :: StopType
-             , msgStopPrice       :: Price
-             , msgMaybeLimitPrice :: Maybe Price
-             , msgFunds           :: Cost
-             , msgTakerFeeRate    :: CoinScientific
-             , msgUserId          :: Maybe UserId
-             , msgProfileId       :: Maybe ProfileId }
-  | Error { msgMessage :: Text }
-  | Subscriptions { msgChannels :: [ChannelSubscription] }
+  = Heartbeat
+    { msgTime        :: UTCTime
+    , msgProductId   :: ProductId
+    , msgSequence    :: Sequence
+    , msgLastTradeId :: TradeId }
+  | ReceivedLimit
+    { msgTime      :: UTCTime
+    , msgProductId :: ProductId
+    , msgSequence  :: Sequence
+    , msgOrderId   :: OrderId
+    , msgSide      :: Side
+    , msgClientOid :: Maybe ClientOrderId
+    , msgPrice     :: Price
+    , msgSize      :: Size
+    , msgUserId    :: Maybe UserId
+    , msgProfileId :: Maybe ProfileId }
+  | ReceivedMarket
+    { msgTime         :: UTCTime
+    , msgProductId    :: ProductId
+    , msgSequence     :: Sequence
+    , msgOrderId      :: OrderId
+    , msgSide         :: Side
+    , msgClientOid    :: Maybe ClientOrderId
+    -- market orders have no price and are bounded by either size, funds or both
+    , msgMarketBounds :: (Either Size (Maybe Size, Cost))
+    , msgUserId       :: Maybe UserId
+    , msgProfileId    :: Maybe ProfileId }
+  | Open
+    { msgTime          :: UTCTime
+    , msgProductId     :: ProductId
+    , msgSequence      :: Sequence
+    , msgOrderId       :: OrderId
+    , msgSide          :: Side
+    , msgRemainingSize :: Size
+    , msgPrice         :: Price
+    , msgUserId        :: Maybe UserId
+    , msgProfileId     :: Maybe ProfileId }
+  | Match
+    { msgTime           :: UTCTime
+    , msgProductId      :: ProductId
+    , msgSequence       :: Sequence
+    , msgSide           :: Side
+    , msgTradeId        :: TradeId
+    , msgMakerOrderId   :: OrderId
+    , msgTakerOrderId   :: OrderId
+    , msgSize           :: Size
+    , msgPrice          :: Price
+    , msgUserId         :: Maybe UserId
+    , msgProfileId      :: Maybe ProfileId
+    , msgTakerUserId    :: Maybe UserId
+    , msgTakerProfileId :: Maybe ProfileId }
+  | Done
+    { msgTime         :: UTCTime
+    , msgProductId    :: ProductId
+    , msgSequence     :: Sequence
+    , msgOrderId      :: OrderId
+    , msgSide         :: Side
+    , msgReason       :: Reason
+    -- It is possible for these next two fields to be Nothing separately
+    -- Filled market orders limited by funds will not have a price but may have remaining_size
+    -- Filled limit orders may have a price but not a remaining_size (assumed zero)
+    -- CURRENTLY ** `remaining_size` reported in Done messages is sometimes incorrect **
+    -- This appears to be bug at GDAX. I've told them about it.
+    , msgMaybePrice   :: Maybe Price
+    , msgMaybeRemSize :: Maybe Size
+    , msgUserId       :: Maybe UserId
+    , msgProfileId    :: Maybe ProfileId }
+  | ChangeLimit
+    { msgTime      :: UTCTime
+    , msgProductId :: ProductId
+    , msgSequence  :: Sequence
+    , msgOrderId   :: OrderId
+    , msgSide      :: Side
+    , msgPrice     :: Price
+    , msgNewSize   :: Size
+    , msgOldSize   :: Size
+    , msgUserId    :: Maybe UserId
+    , msgProfileId :: Maybe ProfileId }
+  | ChangeMarket
+    { msgTime      :: UTCTime
+    , msgProductId :: ProductId
+    , msgSequence  :: Sequence
+    , msgOrderId   :: OrderId
+    , msgSide      :: Side
+    , msgNewFunds  :: Cost
+    , msgOldFunds  :: Cost
+    , msgUserId    :: Maybe UserId
+    , msgProfileId :: Maybe ProfileId }
+  | Activate
+    { msgTime            :: UTCTime
+    , msgProductId       :: ProductId
+    , msgOrderId         :: OrderId
+    , msgSide            :: Side
+    , msgStopType        :: StopType
+    , msgStopPrice       :: Price
+    , msgMaybeLimitPrice :: Maybe Price
+    , msgFunds           :: Cost
+    , msgTakerFeeRate    :: CoinScientific
+    , msgUserId          :: Maybe UserId
+    , msgProfileId       :: Maybe ProfileId }
+  | Error
+    { msgMessage :: Text }
+  | Subscriptions
+    { msgChannels :: [ChannelSubscription]
+    }
+  | Ticker
+    { msgTime      :: UTCTime
+    , msgProductId :: ProductId
+    , msgSequence  :: Sequence
+    , msgTradeId   :: TradeId
+    , msgPrice     :: Price
+    , msgSide      :: Side
+    , msgSize      :: Size
+    , msgBestBid   :: Price
+    , msgBestAsk   :: Price
+    }
+  | Snapshot
+    { msgProductId :: ProductId
+    , msgBids      :: [(Price, Size)]
+    , msgAsks      :: [(Price, Size)]
+    }
+  | L2Update
+    { msgProductId :: ProductId
+    , msgChanges   :: [(Side, Price, Size)]
+    }
   deriving (Eq, Show, Read, Data, Typeable, Generic)
-
-
-
 
 
 data ChannelType
@@ -306,6 +334,28 @@ instance FromJSON ExchangeMessage where
         m .:? "profile_id"
       "error" -> error (show m)
       "subscriptions" -> Subscriptions <$> m .: "channels"
+      "ticker" -> Ticker
+        <$> m .: "time"
+        <*> m .: "product_id"
+        <*> m .: "sequence"
+        <*> m .: "trade_id"
+        <*> m .: "price"
+        <*> m .: "side"
+        <*> m .: "last_size"
+        <*> m .: "best_bid"
+        <*> m .: "best_ask"
+      "snapshot" ->
+        let row [s, p] = (,) <$> parseJSON s <*> parseJSON p
+        in Snapshot
+           <$> m .: "product_id"
+           <*> (m .: "bids" >>= mapM row)
+           <*> (m .: "asks" >>= mapM row)
+      "l2update" ->
+        let row [sd, sz, p] = (,,) <$> parseJSON sd <*> parseJSON sz <*> parseJSON p
+        in L2Update
+           <$> m .: "product_id"
+           <*> (m .: "changes" >>= mapM row)
+
       x -> error ("Unknown message type: " ++ show (x, m))
   parseJSON _ = mzero
 
