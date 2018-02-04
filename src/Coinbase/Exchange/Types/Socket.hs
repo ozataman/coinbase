@@ -168,6 +168,18 @@ data ExchangeMessage
     , msgBids      :: [(Price, Size)]
     , msgAsks      :: [(Price, Size)]
     }
+  | TickerSnapshot
+    { msgProductId :: ProductId
+    , msgSequence  :: Sequence
+    , msgPrice     :: Price
+    , msgBestBid   :: Price
+    , msgBestAsk   :: Price
+    , msgOpen24h   :: Price
+    , msgLow24h    :: Price
+    , msgHigh24h   :: Price
+    , msgVolume24h :: Size
+    , msgVolume30d :: Size
+    }
   | L2Update
     { msgProductId :: ProductId
     , msgChanges   :: [(Side, Price, Size)]
@@ -334,16 +346,29 @@ instance FromJSON ExchangeMessage where
         m .:? "profile_id"
       "error" -> error (show m)
       "subscriptions" -> Subscriptions <$> m .: "channels"
-      "ticker" -> Ticker
-        <$> m .: "time"
-        <*> m .: "product_id"
-        <*> m .: "sequence"
-        <*> m .: "trade_id"
-        <*> m .: "price"
-        <*> m .: "side"
-        <*> m .: "last_size"
-        <*> m .: "best_bid"
-        <*> m .: "best_ask"
+      "ticker" ->
+        let parseTicker = Ticker
+              <$> m .: "time"
+              <*> m .: "product_id"
+              <*> m .: "sequence"
+              <*> m .: "trade_id"
+              <*> m .: "price"
+              <*> m .: "side"
+              <*> m .: "last_size"
+              <*> m .: "best_bid"
+              <*> m .: "best_ask"
+            parseTickerSnapshot = TickerSnapshot
+              <$> m .: "product_id"
+              <*> m .: "sequence"
+              <*> m .: "price"
+              <*> m .: "best_bid"
+              <*> m .: "best_ask"
+              <*> m .: "open_24h"
+              <*> m .: "low_24h"
+              <*> m .: "high_24h"
+              <*> m .: "volume_24h"
+              <*> m .: "volume_30d"
+        in parseTicker <|> parseTickerSnapshot
       "snapshot" ->
         let row [s, p] = (,) <$> parseJSON s <*> parseJSON p
         in Snapshot
