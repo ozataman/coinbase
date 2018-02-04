@@ -29,6 +29,8 @@ main = printSocket -- putStrLn "Use GHCi."
 btc :: ProductId
 btc = "BTC-USD"
 
+btcChannel = ChannelSubscription FullChannel [btc]
+
 start :: Maybe UTCTime
 start = Just $ parseTimeOrError True defaultTimeLocale "%FT%X%z" "2015-04-12T20:22:37+0000"
 
@@ -63,7 +65,7 @@ withCoinbase act = do
 printSocket :: IO ()
 printSocket = do
         conf <- mkConf
-        subscribe conf Live [btc] $ \conn -> do
+        subscribe conf Live [btcChannel] $ \conn -> do
             putStrLn "Connected."
             _ <- forkIO $ forever $ do
                 ds <- WS.receiveData conn

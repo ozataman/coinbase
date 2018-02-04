@@ -20,6 +20,8 @@ import           GHC.Generics
 
 -------------------------------------------------------------------------------
 import           Coinbase.Exchange.Types.Core hiding (OrderStatus (..))
+-------------------------------------------------------------------------------
+
 
 -------------------------------------------------------------------------------
 -- | Fields to send along for websocket feed authentication
@@ -36,8 +38,7 @@ instance ToJSON Auth where
 -------------------------------------------------------------------------------
 -- | Messages we can send to the exchange
 data SendExchangeMessage
-  = Subscribe Auth
-              [ProductId]
+  = Subscribe Auth [ChannelSubscription]
   | SetHeartbeat Bool
   deriving (Eq, Show, Read, Data, Typeable, Generic)
 
@@ -139,17 +140,30 @@ data ExchangeMessage
              , msgUserId          :: Maybe UserId
              , msgProfileId       :: Maybe ProfileId }
   | Error { msgMessage :: Text }
+  | Subscriptions { msgChannels :: [ChannelSubscription] }
   deriving (Eq, Show, Read, Data, Typeable, Generic)
 
 
-data Channel
+
+
+
+data ChannelType
   = Level2Channel
   | HeartbeatChannel
   | TickerChannel
   | FullChannel
   deriving (Eq,Show,Read,Data,Typeable,Generic)
 
-instance FromJSON Channel where
+
+instance ToJSON ChannelType where
+  toJSON s = toJSON $ case s of
+    Level2Channel    -> "level2" :: String
+    HeartbeatChannel -> "heartbeat"
+    TickerChannel    -> "ticker"
+    FullChannel      -> "full"
+
+
+instance FromJSON ChannelType where
   parseJSON (String "level2")    = pure Level2Channel
   parseJSON (String "heartbeat") = pure HeartbeatChannel
   parseJSON (String "ticker")    = pure TickerChannel
@@ -157,14 +171,21 @@ instance FromJSON Channel where
   parseJSON _                    = mzero
 
 
-data ChannelSubscriptions = ChannelSubscriptions
-  { csChannel  :: Channel
+data ChannelSubscription = ChannelSubscription
+  { csChannel  :: ChannelType
   , csProducts :: [ProductId]
   } deriving (Eq,Show,Read,Data,Typeable,Generic)
 
 
-instance FromJSON ChannelSubscriptions where
-  parseJSON (Object m) = ChannelSubscriptions
+instance ToJSON ChannelSubscription where
+  toJSON ChannelSubscription{..} = object
+    [ "name" .= csChannel
+    , "product_ids" .= csProducts
+    ]
+
+
+instance FromJSON ChannelSubscription where
+  parseJSON (Object m) = ChannelSubscription
     <$> m .: "name"
     <*> (do ls <- m .: "product_ids"
             forM ls $ \ (String pn) -> pure (ProductId pn))
@@ -173,8 +194,8 @@ instance FromJSON ChannelSubscriptions where
 
 -------------------------------------------------------------------------------
 instance NFData ExchangeMessage
-instance NFData Channel
-instance NFData ChannelSubscriptions
+instance NFData ChannelType
+instance NFData ChannelSubscription
 -------------------------------------------------------------------------------
 
 
@@ -284,6 +305,8 @@ instance FromJSON ExchangeMessage where
         m .:? "user_id" <*>
         m .:? "profile_id"
       "error" -> error (show m)
+      "subscriptions" -> Subscriptions <$> m .: "channels"
+      x -> error ("Unknown message type: " ++ show (x, m))
   parseJSON _ = mzero
 
 ---------------------------
@@ -300,10 +323,10 @@ obj .:?? key =
 
 -------------------------------------------------------------------------------
 instance ToJSON SendExchangeMessage where
-  toJSON (Subscribe auth pids) =
+  toJSON (Subscribe auth chans) =
     object
       [ "type" .= ("subscribe" :: Text)
-      , "product_ids" .= pids
+      , "channels" .= chans
       , "signature" .= authSignature auth
       , "key" .= authKey auth
       , "passphrase" .= authPassphrase auth

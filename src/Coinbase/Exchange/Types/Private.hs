@@ -7,6 +7,7 @@
 
 module Coinbase.Exchange.Types.Private where
 
+-------------------------------------------------------------------------------
 import           Control.Applicative
 import           Control.DeepSeq
 import           Control.Monad
@@ -18,12 +19,13 @@ import           Data.Hashable
 import           Data.Text                    (Text)
 import qualified Data.Text                    as T
 import           Data.Time
-import           Data.UUID.Types
+import           Data.UUID
 import           Data.Word
 import           GHC.Generics
-
+-------------------------------------------------------------------------------
 import           Coinbase.Exchange.Types
 import           Coinbase.Exchange.Types.Core hiding (Entry)
+-------------------------------------------------------------------------------
 
 -- Accounts
 

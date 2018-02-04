@@ -32,7 +32,7 @@ import           Coinbase.Exchange.Types.Socket
 mkAuth :: ExchangeConf -> IO Auth
 mkAuth conf = do
     let meth = "GET"
-        p = "/users/self"
+        p = "/users/self/verify"
     case authToken conf of
         Just tok -> do
             time <-
@@ -50,12 +50,12 @@ mkAuth conf = do
         Nothing -> throw $ AuthenticationRequiredFailure $ T.pack p
 
 -------------------------------------------------------------------------------
-subscribe :: ExchangeConf -> ApiType -> [ProductId] -> WS.ClientApp a -> IO a
-subscribe conf atype pids app =
+subscribe :: ExchangeConf -> ApiType -> [ChannelSubscription] -> WS.ClientApp a -> IO a
+subscribe conf atype chans app =
     withSocketsDo $ do
         auth <- mkAuth conf
         runSecureClient location 443 "/" $ \conn -> do
-            WS.sendTextData conn $ encode (Subscribe auth pids)
+            WS.sendTextData conn $ encode (Subscribe auth chans)
             app conn
   where
     location =
