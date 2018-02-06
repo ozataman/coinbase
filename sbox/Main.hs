@@ -71,7 +71,7 @@ withCoinbase act = do
 printSocket :: IO ()
 printSocket = do
         conf <- mkConf
-        subscribe (Just conf) Live compactChannels $ \conn -> do
+        subscribe (Just conf) Live (fullChannel ++ compactChannels) $ \conn -> do
             putStrLn "Connected."
             _ <- forkIO $ forever $ do
                 ds <- WS.receiveData conn
