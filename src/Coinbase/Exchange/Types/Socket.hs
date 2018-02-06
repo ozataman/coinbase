@@ -115,16 +115,18 @@ data ExchangeMessage
     , msgUserId       :: Maybe UserId
     , msgProfileId    :: Maybe ProfileId }
   | ChangeLimit
-    { msgTime      :: UTCTime
-    , msgProductId :: ProductId
-    , msgSequence  :: Sequence
-    , msgOrderId   :: OrderId
-    , msgSide      :: Side
-    , msgPrice     :: Price
-    , msgNewSize   :: Size
-    , msgOldSize   :: Size
-    , msgUserId    :: Maybe UserId
-    , msgProfileId :: Maybe ProfileId }
+    { msgTime       :: UTCTime
+    , msgProductId  :: ProductId
+    , msgSequence   :: Sequence
+    , msgOrderId    :: OrderId
+    , msgSide       :: Side
+    -- Once in a blue moon, GDAX will send ChangeLimit messages
+    -- without a price field.
+    , msgMaybePrice :: Maybe Price
+    , msgNewSize    :: Size
+    , msgOldSize    :: Size
+    , msgUserId     :: Maybe UserId
+    , msgProfileId  :: Maybe ProfileId }
   | ChangeMarket
     { msgTime      :: UTCTime
     , msgProductId :: ProductId
@@ -295,7 +297,7 @@ instance FromJSON ExchangeMessage where
               m .: "sequence" <*>
               m .: "order_id" <*>
               m .: "side" <*>
-              m .: "price" <*>
+              m .:? "price" <*>
               m .: "new_size" <*>
               m .: "old_size" <*>
               m .:? "user_id" <*>
@@ -468,7 +470,7 @@ instance ToJSON ExchangeMessage where
     , "side" .= msgSide
     , "new_size" .= msgNewSize
     , "old_size" .= msgOldSize
-    , "price" .= msgPrice
+    , "price" .= msgMaybePrice
     ] ++
     optionalField "user_id" msgUserId ++ optionalField "profile_id" msgProfileId
   toJSON ChangeMarket {..} =
